@@ -1,0 +1,497 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    color: #222;
+}
+
+header {
+    background-color: #008000;
+    color: white;
+    padding: 25px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 36px;
+}
+
+nav {
+    background-color: #006400;
+    padding: 12px;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+main {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.article {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+footer {
+    background-color: #006400;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Style des tableaux (Classement) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: white;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #008000;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Style des formulaires et boutons */
+input[type="text"], input[type="number"], input[type="date"], select {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #008000;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #006400;
+}
+
+button.supprimer-equipe {
+    background-color: #d9534f;
+    margin-top: 5px;
+}
+
+button.supprimer-equipe:hover {
+    background-color: #c9302c;
+}
+
+/* Style de la barre de navigation */
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: #008000;
+    padding: 10px;
+}
+
+.navbar a, .dropbtn {
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+    background-color: #006400;
+    border-radius: 4px;
+}
+
+/* Menu déroulant */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.dropdown-content a {
+    color: #333333;
+    padding: 12px 16px;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    color: #008000;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Style des onglets de compétition */
+.onglets-competition {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #008000;
+    padding-bottom: 5px;
+}
+
+.btn-onglet {
+    padding: 10px 15px;
+    background-color: #f1f1f1; /* Fond gris clair pour l'onglet inactif */
+    color: #333333;           /* Couleur du texte (gris foncé/noir) */
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px 5px 0 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Style de l'onglet actif (celui qui est sélectionné) */
+.btn-onglet.active {
+    background-color: #008000; /* Fond vert */
+    color: #ffffff;           /* Texte blanc sur fond vert */
+    border-color: #008000;
+}
+
+/* Effet au survol de la souris sur les onglets inactifs */
+.btn-onglet:hover:not(.active) {
+    background-color: #e0e0e0;
+    color: #000000;
+}
+
+
+.btn-onglet.active {
+    background-color: #008000;
+    color: white;
+}
+
+/* Alignement général de la barre de navigation */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #008000;
+    padding: 10px 20px;
+}
+
+/* Style du conteneur du logo */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+/* Taille de l'image du logo */
+.site-logo {
+    height: 40px; /* Ajuste cette hauteur selon le rendu souhaité */
+    width: auto;
+}
+
+/* Texte à côté du logo */
+.site-title {
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+/* ==========================================
+   STYLE GÉNÉRAL & PALETTE DE COULEURS
+   ========================================== */
+:root {
+    --primary-color: #1b4332;      /* Vert foncé football */
+    --accent-color: #2d6a4f;       /* Vert terrain */
+    --highlight-color: #52b788;    /* Vert néon / accents */
+    --bg-color: #f4f6f8;           /* Gris clair de fond */
+    --card-bg: #ffffff;            /* Blanc pur pour les cartes */
+    --text-color: #2b2d42;         /* Texte principal sombre */
+    --text-light: #6c757d;        /* Texte secondaire */
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* ==========================================
+   EN-TÊTE & NAVIGATION
+   ========================================== */
+header {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    padding: 25px 20px 0 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.header-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+nav {
+    max-width: 1000px;
+    margin: 20px auto 0 auto;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+nav a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 12px 20px;
+    display: block;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+nav a:hover, nav a.active {
+    color: #ffffff;
+    border-bottom: 3px solid var(--highlight-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================
+   HERO / ACCUEIL
+   ========================================== */
+.hero-section {
+    max-width: 1000px;
+    margin: 30px auto 20px auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.hero-section h2 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.hero-section p {
+    color: var(--text-light);
+    font-size: 1.05rem;
+}
+
+/* ==========================================
+   CONTENU PRINCIPAL & CARTES
+   ========================================== */
+.main-container {
+    max-width: 1000px;
+    margin: 0 auto 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.card-section {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.card-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    padding: 18px 20px;
+    border-bottom: 2px solid var(--highlight-color);
+}
+
+.card-header h3 {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-body p {
+    color: var(--text-color);
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+/* LISTE DES COMPÉTITIONS */
+.competitions-list {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+.competitions-list li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #e9ecef;
+    font-weight: 500;
+    color: var(--accent-color);
+}
+
+.competitions-list li:last-child {
+    border-bottom: none;
+}
+
+/* ==========================================
+   BOUTONS D'ACTION
+   ========================================== */
+.action-box {
+    margin-top: 15px;
+}
+
+.btn-primary, .btn-secondary {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color);
+}
+
+.btn-secondary {
+    background-color: #e9ecef;
+    color: var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: #dee2e6;
+}
+
+/* ==========================================
+   PIED DE PAGE
+   ========================================== */
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+/* Alignement du logi dans le classement */
+.logo-tableau {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.logo-placeholder {
+    display: inline-block;
+    width: 22px;
+    text-align: center;
+    margin-right: 8px;
+    font-size: 0.85rem;
+}
+
+.nom-club {
+    vertical-align: middle;
+    font-weight: 600;
+}
+
+.bt-groupe {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.btn-groupe.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056d3;
+}

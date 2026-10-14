@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Boma Football</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>Boma Football News</h1>
+        <p>Administration des compétitions</p>
+    </header>
+
+    <main>
+
+        <!-- SAUVEGARDE ET RESTAURATION -->
+        <div style="background-color: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
+            <h3>💾 Sauvegarde & Restauration</h3>
+            <button type="button" id="exporterDonnees">📥 Télécharger une sauvegarde (.json)</button>
+            <br><br>
+            <label for="importerFichier"><strong>Restaurer des données :</strong></label>
+            <input type="file" id="importerFichier" accept=".json">
+        </div>
+
+        <!-- FORMULAIRE CRÉATION DE COMPÉTITION -->
+        <h2>⚙️ Créer une compétition</h2>
+
+        <form id="formCompetition">
+
+            <label for="nomCompetition">Compétition</label>
+            <select id="nomCompetition">
+                <option value="Linafoot Ligue 1 - Groupe A">Linafoot Ligue 1 - Groupe A</option>
+                <option value="Libafoot Ligue 1 - Groupe B">Linafoot Ligue 1 - Groupe B</option>
+                <option value="Coupe du Congo">Coupe du Congo</option>
+                <option value="Coupe du Congo U-17">Coupe du Congo U-17</option>
+                <option value="Linafoot Ligue 2 — Zone Ouest">Linafoot Ligue 2 — Zone Ouest</option>
+                <option value="Championnat Provincial du Kongo-Central - Groupe A">Championnat Provincial du Kongo-Central - Groupe A</option>
+                <option value="Championnat Provincial du Kongo-Central - Groupe B">Championnat Provincial du Kongo-Central - Groupe B</option>
+                <option value="Championnat Provincial du Kongo-Central U-17">Championnat Provincial du Kongo-Central U-17</option>
+                <option value="Boma D1">Boma D1</option>
+            </select>
+
+            <br><br>
+
+            <label for="saison">Saison</label>
+            <input type="text" id="saison" placeholder="Ex : 2026-2027">
+
+            <br><br>
+
+            <label for="format">Format de la compétition</label>
+            <select id="format">
+                <option value="championnat">Championnat</option>
+                <option value="aller-retour">Championnat aller-retour</option>
+                <option value="groupes">Phase de groupes</option>
+                <option value="elimination">Élimination directe</option>
+            </select>
+
+            <br><br>
+
+            <h3>⚽ Système de points</h3>
+
+            <label for="victoire">Victoire</label>
+            <input type="number" id="victoire" value="3" min="0">
+
+            <br><br>
+
+            <label for="nul">Match nul</label>
+            <input type="number" id="nul" value="1" min="0">
+
+            <br><br>
+
+            <label for="defaite">Défaite</label>
+            <input type="number" id="defaite" value="0" min="0">
+
+            <br><br>
+
+            <h3>⚽ Équipes participantes</h3>
+
+            <!-- SÉLECTEUR DE COMPÉTITION À MODIFIER -->
+            <div style="background-color: #f1f3f5; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <label for="selectCompModifier"><strong>Charger une compétition existante :</strong></label>
+                <select id="selectCompModifier" onchange="chargerEquipesCompModifier()">
+                    <option value="">-- Nouvelle compétition ou choisir une existante --</option>
+                </select>
+            </div>
+
+            <div id="equipes">
+
+                <div class="equipe">
+
+                <label>Nom du club</label>
+                    <input type="text" class="nom-equipe" placeholder="Ex : Sporting Club de Boma">
+
+                    <label>Logo du club</label>
+                    <input type="file" class="logo-equipe" accept="image/*">
+
+                    <button type="button" class="supprimer-equipe">🗑 Supprimer</button>
+                </div>
+            </div>
+
+            <br>
+
+            <button type="button" id="ajouterEquipe">+ Ajouter une équipe</button>
+
+            <br><br>
+
+            <button type="button" id="enregistrerCompetition">💾 Enregistrer la compétition</button>
+
+        </form>
+
+        <hr style="margin: 40px 0;">
+
+        <!-- FORMULAIRE GESTION DES MATCHS ET JOURNÉES -->
+        <h2>📅 Saisie des Matchs par Journée</h2>
+
+        <form id="formMatch">
+
+            <label for="selectCompetitionMatch">Compétition</label>
+            <select id="selectCompetitionMatch"></select>
+
+            <br><br>
+
+            <label for="journeeMatch"><strong>N° de Journée :</strong></label>
+            <input type="number" id="journeeMatch" value="1" min="1" style="width: 80px;">
+
+            <br><br>
+
+            <label for="dateMatch">Date du match</label>
+            <input type="date" id="dateMatch">
+
+            <br><br>
+
+            <label for="equipeDomicile">Équipe Domicile</label>
+            <select id="equipeDomicile">
+                <option value="">-- Choisir le club domicile --</option>
+            </select>
+
+            <br><br>
+
+            <label for="equipeExterieur">Équipe Extérieur</label>
+            <select id="equipeExterieur">
+                <option value="">-- Choisir le club extérieur --</option>
+            </select>
+
+            <br><br>
+
+            <label for="matchJoue">
+                <input type="checkbox" id="matchJoue"> Match joué (résultat disponible)
+            </label>
+
+            <br><br>
+
+            <div id="blocScore">
+                <label for="scoreDomicile">Score Domicile</label>
+                <input type="number" id="scoreDomicile" value="0" min="0" style="width: 60px;">
+                
+                <span>-</span>
+                
+                <label for="scoreExterieur">Score Extérieur</label>
+                <input type="number" id="scoreExterieur" value="0" min="0" style="width: 60px;">
+            </div>
+
+            <br><br>
+
+            <button type="button" id="enregistrerMatch">➕ Enregistrer le match</button>
+
+            <!-- LISTE ET MODIFICATION DES MATCHS -->
+            <div style="margin-top: 30px; background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                <h3>📋 Matchs enregistrés pour cette compétition</h3>
+                <div id="listeMatchsAdmin">
+                    <p style="color: #666;">Sélectionnez une compétition pour voir et modifier ses matchs.</p>
+                </div>
+            </div>
+
+        </form>
+
+    </main>
+
+    <footer>
+        <p>© 2026 Boma Football — Média sportif indépendant</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="matchs.js"></script>
+
+</body>
+
+</html>

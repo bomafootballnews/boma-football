@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compétition - Boma Football</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Barre de navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="logo-container">
+            <img src="logo.jpg" alt="Logo Boma Football News" class="site-logo">
+        </a>
+
+        <div class="nav-links">
+            <a href="index.html">Accueil</a>
+            <a href="actualites.html">Actualités</a>
+
+            <div class="dropdown">
+                <button class="dropbtn">🏆 Compétitions ▾</button>
+                <div class="dropdown-content">
+                    <a href="competition.html#boma-d1">Boma D1</a>
+                    <a href="competition.html#linafoot-ligue-1-2026-2027">Linafoot Ligue 1</a>
+                    <a href="competition.html#linafoot-l2">Linafoot Ligue 2</a>
+                    <a href="competition.html#championnat-provincial">Championnat Provincial</a>
+                </div>
+            </div>
+
+            <a href="apropos.html">À propos</a>
+        </div>
+    </nav>
+
+    <!-- Zone principale de contenu -->
+    <main style="padding: 20px; max-width: 1000px; margin: auto;">
+        
+        <!-- Informations sur la compétition -->
+        <h2 id="nomCompetition">Chargement...</h2>
+        <p id="saisonCompetition"></p>
+
+        <!-- Sélecteur de Groupe (affiché uniquement si la compétition comporte des groupes) -->
+        <div id="zoneChoixGroupe" class="choix-groupe" style="display: none; margin-bottom: 20px;">
+            <button class="btn-groupe active" onclick="changerGroupe('A')">Groupe A</button>
+            <button class="btn-groupe" onclick="changerGroupe('B')">Groupe B</button>
+        </div>
+
+        <!-- Barre d'onglets principales -->
+        <div class="onglets-competition">
+            <button class="btn-onglet active" onclick="changerOnglet('classement')">📊 Classement</button>
+            <button class="btn-onglet" onclick="changerOnglet('journees')">📅 Journées</button>
+            <button class="btn-onglet" onclick="changerOnglet('equipes')">🛡️ Équipes</button>
+        </div>
+
+      <!-- VUE 1 : CLASSEMENT -->
+<div id="vue-classement" class="contenu-onglet">
+    <h3>Classement</h3>
+
+    <!-- LIGNE À AJOUTER ICI (Boutons Groupe A / Groupe B) -->
+    <div id="groupe-buttons-container" style="margin-bottom: 15px; display: flex; gap: 10px;"></div>
+
+    <table id="tableClassement">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Club</th>
+                <th>MJ</th>
+                <th>V</th>
+                <th>N</th>
+                <th>D</th>
+                <th>BP</th>
+                <th>BC</th>
+                <th>Diff</th>
+                <th>Pts</th>
+            </tr>
+        </thead>
+        <tbody id="classementBody"></tbody>
+    </table>
+</div>
+
+        <!-- VUE 2 : JOURNÉES (Calendrier + Résultats regroupés) -->
+        <div id="vue-journees" class="contenu-onglet" style="display: none;">
+            <div class="selecteur-journee" style="margin-bottom: 15px;">
+                <label for="selectJournee"><strong>Sélectionner la journée : </strong></label>
+                <select id="selectJournee" onchange="afficherMatchsJournee()"></select>
+            </div>
+            <div id="listeMatchsJournee"></div>
+        </div>
+
+        <!-- VUE 3 : ÉQUIPES -->
+        <div id="vue-equipes" class="contenu-onglet" style="display: none;">
+            <h3 id="titreEquipes">Clubs Participants</h3>
+            <ul id="listeEquipes" class="grille-equipes"></ul>
+        </div>
+
+    </main>
+
+    <!-- Inclusion du script JavaScript -->
+    <script src="competition.js"></script>
+
+    <script src="menu.js"></script>
+
+</body>
+</html>

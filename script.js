@@ -171,8 +171,27 @@ if (boutonEnregistrer) {
 
         boutonEnregistrer.disabled = true;
 
+        const selectModifier = document.getElementById("selectCompModifier");
+        const idAncien = selectModifier ? selectModifier.value : "";
+        let idASupprimer = "";
+
         try {
-            const existante = await Donnees.lire(idCompetition);
+            let existante = await Donnees.lire(idCompetition);
+
+            // Nom ou saison changé sur une compétition chargée : proposer de la RENOMMER
+            if (!existante && idAncien && idAncien !== idCompetition) {
+                const ancienne = await Donnees.lire(idAncien);
+
+                if (ancienne && confirm(
+                    "Le nom ou la saison a changé.\n\n" +
+                    "OK = RENOMMER « " + ancienne.nom + " (" + ancienne.saison + ") » : " +
+                    "les matchs sont conservés et l'ancienne version est supprimée.\n\n" +
+                    "Annuler = créer une NOUVELLE compétition en plus de l'ancienne.")) {
+                    existante = { matchs: ancienne.matchs || [] };
+                    idASupprimer = idAncien;
+                }
+            }
+
             const competition = existante || { id: idCompetition, matchs: [] };
 
             competition.id = idCompetition;
@@ -184,6 +203,7 @@ if (boutonEnregistrer) {
             competition.matchs = competition.matchs || [];
 
             await Donnees.ecrire(competition);
+            if (idASupprimer) await Donnees.supprimer(idASupprimer);
 
             alert("✅ Compétition '" + nomCompetition + "' enregistrée en ligne !");
             await rafraichirTousLesSelectsCompetitions();

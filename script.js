@@ -2,8 +2,18 @@
 // INITIALISATION AU CHARGEMENT
 // ===============================
 document.addEventListener("DOMContentLoaded", function () {
+    if (!window.Donnees) {
+        alert("⚠️ donnees.js est manquant dans admin.html.");
+        return;
+    }
     rafraichirTousLesSelectsCompetitions();
+    ajouterBoutonSupprimerCompetition();
+    proposerEnvoiDonneesLocales();
 });
+
+function messageErreur(e) {
+    return window.Donnees ? Donnees.erreurTexte(e) : String(e);
+}
 
 // ===============================
 // LOGOS : lecture + réduction (pour ne pas saturer le stockage)
@@ -159,52 +169,51 @@ if (boutonEnregistrer) {
             });
         }
 
-        let competitions = JSON.parse(localStorage.getItem("competitions")) || [];
-        let indexExistante = competitions.findIndex(comp => comp.id === idCompetition);
-
-        if (indexExistante !== -1) {
-            competitions[indexExistante].nom = nomCompetition;
-            competitions[indexExistante].saison = saison;
-            competitions[indexExistante].format = format;
-            competitions[indexExistante].points = { victoire, nul, defaite };
-            competitions[indexExistante].equipes = equipes;
-        } else {
-            competitions.push({
-                id: idCompetition,
-                nom: nomCompetition,
-                saison: saison,
-                format: format,
-                points: { victoire, nul, defaite },
-                equipes: equipes,
-                matchs: []
-            });
-        }
+        boutonEnregistrer.disabled = true;
 
         try {
-            localStorage.setItem("competitions", JSON.stringify(competitions));
+            const existante = await Donnees.lire(idCompetition);
+            const competition = existante || { id: idCompetition, matchs: [] };
+
+            competition.id = idCompetition;
+            competition.nom = nomCompetition;
+            competition.saison = saison;
+            competition.format = format;
+            competition.points = { victoire, nul, defaite };
+            competition.equipes = equipes;
+            competition.matchs = competition.matchs || [];
+
+            await Donnees.ecrire(competition);
+
+            alert("✅ Compétition '" + nomCompetition + "' enregistrée en ligne !");
+            await rafraichirTousLesSelectsCompetitions();
         } catch (erreur) {
-            alert("⚠️ Espace de stockage plein : utilisez des logos plus petits ou faites une sauvegarde puis supprimez d'anciennes saisons.");
-            return;
+            alert("⚠️ Enregistrement impossible : " + messageErreur(erreur));
+        } finally {
+            boutonEnregistrer.disabled = false;
         }
-
-        alert("✅ Compétition '" + nomCompetition + "' enregistrée avec succès !");
-
-        rafraichirTousLesSelectsCompetitions();
     });
 }
 
 // ===============================
 // METTRE À JOUR TOUS LES SELECTS
 // ===============================
-function rafraichirTousLesSelectsCompetitions() {
+async function rafraichirTousLesSelectsCompetitions() {
     const selectMatch = document.getElementById("selectCompetitionMatch");
     const selectModifier = document.getElementById("selectCompModifier");
 
-    const competitions = JSON.parse(localStorage.getItem("competitions")) || [];
+    let competitions = [];
+    try {
+        competitions = await Donnees.liste();
+    } catch (erreur) {
+        alert("⚠️ Lecture impossible : " + messageErreur(erreur));
+    }
 
-    // Menu pour ajouter des matchs
+    // Menu pour ajouter des matchs (on garde la sélection actuelle si possible)
     if (selectMatch) {
+        const precedent = selectMatch.value;
         selectMatch.innerHTML = "";
+
         if (competitions.length === 0) {
             selectMatch.innerHTML = "<option value=''>Aucune compétition enregistrée</option>";
         } else {
@@ -214,6 +223,8 @@ function rafraichirTousLesSelectsCompetitions() {
                 opt.textContent = comp.nom + " (" + comp.saison + ")";
                 selectMatch.appendChild(opt);
             });
+
+            if (competitions.some(c => c.id === precedent)) selectMatch.value = precedent;
         }
     }
 
@@ -228,7 +239,10 @@ function rafraichirTousLesSelectsCompetitions() {
         });
     }
 
-    chargerClubsDansSelects();
+    await chargerClubsDansSelects();
+
+    // Prévenir matchs.js que la liste est prête
+    document.dispatchEvent(new Event("listeCompetitionsPrete"));
 }
 
 // ===============================
@@ -238,7 +252,7 @@ const selectCompMatch = document.getElementById("selectCompetitionMatch");
 
 if (selectCompMatch) selectCompMatch.addEventListener("change", chargerClubsDansSelects);
 
-function chargerClubsDansSelects() {
+async function chargerClubsDansSelects() {
     const idComp = document.getElementById("selectCompetitionMatch") ? document.getElementById("selectCompetitionMatch").value : "";
 
     const selectDom = document.getElementById("equipeDomicile");
@@ -249,8 +263,14 @@ function chargerClubsDansSelects() {
     selectDom.innerHTML = "<option value=''>-- Choisir club domicile --</option>";
     selectExt.innerHTML = "<option value=''>-- Choisir club extérieur --</option>";
 
-    const competitions = JSON.parse(localStorage.getItem("competitions")) || [];
-    const comp = competitions.find(c => c.id === idComp);
+    if (!idComp) return;
+
+    let comp = null;
+    try {
+        comp = await Donnees.lire(idComp);
+    } catch (erreur) {
+        return;
+    }
 
     if (!comp || !comp.equipes || comp.equipes.length === 0) return;
 
@@ -272,13 +292,18 @@ function chargerClubsDansSelects() {
 // ===============================
 // CHARGER UNE COMPÉTITION EXISTANTE (infos + équipes + logos)
 // ===============================
-function chargerEquipesCompModifier() {
+async function chargerEquipesCompModifier() {
     const idComp = document.getElementById("selectCompModifier").value;
     const conteneur = document.getElementById("equipes");
     if (!conteneur || !idComp) return;
 
-    const competitions = JSON.parse(localStorage.getItem("competitions")) || [];
-    const comp = competitions.find(c => c.id === idComp);
+    let comp = null;
+    try {
+        comp = await Donnees.lire(idComp);
+    } catch (erreur) {
+        alert("⚠️ Lecture impossible : " + messageErreur(erreur));
+        return;
+    }
     if (!comp) return;
 
     // Remplir aussi nom / saison / format / points : l'identifiant est calculé
@@ -306,26 +331,106 @@ function chargerEquipesCompModifier() {
 }
 
 // ===============================
+// SUPPRIMER UNE COMPÉTITION
+// ===============================
+function ajouterBoutonSupprimerCompetition() {
+    const selectModifier = document.getElementById("selectCompModifier");
+    if (!selectModifier) return;
+
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.textContent = "🗑 Supprimer cette compétition";
+    bouton.style.marginLeft = "10px";
+    selectModifier.insertAdjacentElement("afterend", bouton);
+
+    bouton.addEventListener("click", async function () {
+        const id = selectModifier.value;
+        if (!id) {
+            alert("⚠️ Choisissez d'abord une compétition dans la liste.");
+            return;
+        }
+
+        const libelle = selectModifier.options[selectModifier.selectedIndex].textContent;
+        if (!confirm("Supprimer définitivement « " + libelle + " » avec ses clubs et ses matchs ?")) return;
+
+        try {
+            await Donnees.supprimer(id);
+            alert("✅ Compétition supprimée.");
+            await rafraichirTousLesSelectsCompetitions();
+        } catch (erreur) {
+            alert("⚠️ Suppression impossible : " + messageErreur(erreur));
+        }
+    });
+}
+
+// ===============================
+// ENVOYER LES ANCIENNES DONNÉES (stockées dans ce navigateur) VERS FIREBASE
+// ===============================
+function proposerEnvoiDonneesLocales() {
+    let anciennes = [];
+    try {
+        anciennes = JSON.parse(localStorage.getItem("competitions")) || [];
+    } catch (e) {
+        anciennes = [];
+    }
+    if (!Array.isArray(anciennes) || anciennes.length === 0) return;
+
+    const zone = document.getElementById("exporterDonnees");
+    if (!zone) return;
+
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.textContent = "⬆ Envoyer mes " + anciennes.length + " compétition(s) de ce navigateur vers la base en ligne";
+    bouton.style.cssText = "display:block; margin-top:10px;";
+    zone.insertAdjacentElement("afterend", bouton);
+
+    bouton.addEventListener("click", async function () {
+        if (!confirm("Envoyer " + anciennes.length + " compétition(s) vers la base en ligne ? Celles qui existent déjà seront remplacées.")) return;
+
+        bouton.disabled = true;
+        try {
+            for (const comp of anciennes) {
+                if (comp && comp.id && comp.nom && comp.saison) await Donnees.ecrire(comp);
+            }
+            // On garde une copie de l'ancien stockage, sans qu'il resserve
+            localStorage.setItem("competitions_ancien", JSON.stringify(anciennes));
+            localStorage.removeItem("competitions");
+            alert("✅ Données envoyées ! Elles sont maintenant visibles en ligne.");
+            bouton.remove();
+            await rafraichirTousLesSelectsCompetitions();
+        } catch (erreur) {
+            alert("⚠️ Envoi impossible : " + messageErreur(erreur));
+            bouton.disabled = false;
+        }
+    });
+}
+
+// ===============================
 // EXPORT & IMPORT JSON
 // ===============================
 const boutonExporter = document.getElementById("exporterDonnees");
 const champImporter = document.getElementById("importerFichier");
 
 if (boutonExporter) {
-    boutonExporter.addEventListener("click", function () {
-        const donnees = localStorage.getItem("competitions");
-        if (!donnees || JSON.parse(donnees).length === 0) {
-            alert("⚠️ Aucune donnée à exporter.");
-            return;
-        }
+    boutonExporter.addEventListener("click", async function () {
+        try {
+            const toutes = await Donnees.toutes();
 
-        const blob = new Blob([donnees], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "boma-football-backup.json";
-        a.click();
-        URL.revokeObjectURL(url);
+            if (toutes.length === 0) {
+                alert("⚠️ Aucune donnée à exporter.");
+                return;
+            }
+
+            const blob = new Blob([JSON.stringify(toutes)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "boma-football-backup.json";
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (erreur) {
+            alert("⚠️ Export impossible : " + messageErreur(erreur));
+        }
     });
 }
 
@@ -335,21 +440,25 @@ if (champImporter) {
         if (!fichier) return;
 
         const lecteur = new FileReader();
-        lecteur.onload = function (e) {
+        lecteur.onload = async function (e) {
             try {
                 const donnees = JSON.parse(e.target.result);
                 if (!Array.isArray(donnees)) {
-                    alert("⚠️ Le fichier n'est pas un tableau JSON valide.");
+                    alert("⚠️ Le fichier n'est pas une sauvegarde valide.");
                     return;
                 }
 
-                if (confirm("Remplacer toutes les données actuelles par la sauvegarde ?")) {
-                    localStorage.setItem("competitions", JSON.stringify(donnees));
-                    alert("✅ Données restaurées !");
-                    location.reload();
+                if (!confirm("Envoyer " + donnees.length + " compétition(s) vers la base en ligne ? Celles qui existent déjà seront remplacées.")) return;
+
+                for (const comp of donnees) {
+                    if (comp && comp.id && comp.nom && comp.saison) await Donnees.ecrire(comp);
                 }
-            } catch (err) {
-                alert("⚠️ Erreur lors de la lecture du fichier.");
+
+                alert("✅ Données restaurées !");
+                champImporter.value = "";
+                await rafraichirTousLesSelectsCompetitions();
+            } catch (erreur) {
+                alert("⚠️ Restauration impossible : " + messageErreur(erreur));
             }
         };
         lecteur.readAsText(fichier);

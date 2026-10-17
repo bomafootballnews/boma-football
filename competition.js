@@ -11,19 +11,9 @@ var zoneGroupe = document.getElementById("zoneChoixGroupe");
 // ===============================
 // RÉCUPÉRER LA COMPÉTITION (via l'adresse : competition.html#id)
 // ===============================
-var competitions = [];
-try {
-    competitions = JSON.parse(localStorage.getItem("competitions")) || [];
-} catch (e) {
-    competitions = [];
-}
-
 var idCompetition = decodeURIComponent(window.location.hash.substring(1));
-var competition = competitions.find(function (comp) {
-    return comp.id === idCompetition;
-});
-
-var groupeActuel = null; // groupe affiché (A, B...) ou null s'il n'y a pas de groupes
+if (!/^[a-z0-9-]+$/.test(idCompetition)) idCompetition = "";
+var competition = null;
 
 // Si on clique sur une autre compétition dans le menu, on recharge la page
 window.addEventListener("hashchange", function () {
@@ -105,6 +95,7 @@ function logoHtml(equipe, classe) {
 // ===============================
 // INITIALISATION
 // ===============================
+function demarrer() {
 if (!competition) {
     if (nomCompetition) nomCompetition.textContent = "Compétition introuvable";
     if (saisonCompetition) saisonCompetition.textContent = "Cette saison n'existe pas.";
@@ -130,6 +121,32 @@ if (!competition) {
     afficherEquipes();
     afficherCalendrier();
 }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (!window.Donnees) {
+        if (nomCompetition) nomCompetition.textContent = "Données indisponibles";
+        if (saisonCompetition) saisonCompetition.textContent = "Le fichier donnees.js est manquant dans cette page.";
+        return;
+    }
+
+    if (!idCompetition) {
+        demarrer();
+        return;
+    }
+
+    if (nomCompetition) nomCompetition.textContent = "Chargement…";
+
+    Donnees.lire(idCompetition)
+        .then(function (comp) {
+            competition = comp;
+            demarrer();
+        })
+        .catch(function () {
+            if (nomCompetition) nomCompetition.textContent = "Chargement impossible";
+            if (saisonCompetition) saisonCompetition.textContent = "Vérifiez votre connexion internet puis rechargez la page.";
+        });
+});
 
 // ===============================
 // ONGLETS

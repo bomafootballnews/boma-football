@@ -495,3 +495,79 @@ footer {
     color: white;
     border-color: #0056d3;
 }
+/* ==========================================
+   AFFICHAGE SMARTPHONE (à garder tout à la fin de style.css)
+   ========================================== */
+@media (max-width: 768px) {
+
+    /* Barre de navigation : les onglets passent à la ligne au lieu de disparaître */
+    nav, .navbar {
+        position: relative;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .logo-container {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+
+    nav ul {
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 0;
+    }
+
+    .navbar > a, .nav-links > a, .dropbtn, nav a {
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* Menu déroulant : s'ouvre en appuyant, sur toute la largeur */
+    .dropdown {
+        position: static;
+    }
+
+    .dropdown-content {
+        left: 10px;
+        right: 10px;
+        min-width: 0;
+        max-height: 60vh;
+        overflow-y: auto;
+        z-index: 100;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: none;
+    }
+
+    .dropdown.ouvert .dropdown-content {
+        display: block;
+    }
+
+    /* Page d'une compétition : onglets et tableau */
+    .onglets-competition {
+        flex-wrap: wrap;
+    }
+
+    #vue-classement {
+        overflow-x: auto;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+    header h1 {
+        font-size: 1.6rem;
+    }
+}

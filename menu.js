@@ -9,6 +9,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var CLE_CACHE = "boma_menu_competitions";
 
+    // Smartphone : le menu s'ouvre et se ferme en appuyant sur le bouton
+    document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        var bouton = dropdown.querySelector(".dropbtn");
+        if (!bouton) return;
+
+        bouton.addEventListener("click", function (event) {
+            event.stopPropagation();
+            dropdown.classList.toggle("ouvert");
+        });
+    });
+
+    document.addEventListener("click", function () {
+        document.querySelectorAll(".dropdown.ouvert").forEach(function (d) {
+            d.classList.remove("ouvert");
+        });
+    });
+
     function remplir(competitions) {
         menus.forEach(function (menu) {
             menu.innerHTML = "";

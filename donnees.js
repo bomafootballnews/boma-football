@@ -167,6 +167,30 @@
         return (e && e.message) ? e.message : String(e);
     }
 
+    // ---- Statistiques de visites (Google Analytics 4) ----
+    var ID_MESURE = "G-2NXS0ZCX9B";
+
+    function demarrerStatistiques() {
+        var hote = window.location.hostname;
+        var page = window.location.pathname;
+
+        // Pas de comptage en local ni sur la page d'administration
+        if (hote === "" || hote === "localhost" || hote === "127.0.0.1" || /admin/i.test(page)) return;
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag("js", new Date());
+        window.gtag("config", ID_MESURE);
+
+        var script = document.createElement("script");
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=" + ID_MESURE;
+        document.head.appendChild(script);
+    }
+
+    // Lancé après le chargement de la page pour ne pas la ralentir
+    window.addEventListener("load", demarrerStatistiques);
+
     window.Donnees = {
         liste: liste,
         lire: lire,

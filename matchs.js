@@ -124,7 +124,7 @@
             alert(index !== -1 ? "✅ Match mis à jour !" : "✅ Match enregistré !");
 
             reinitialiserFormulaire();
-            await afficherMatchsAdmin();
+            await afficherMatchsAdmin(match.journee);
         } catch (erreur) {
             alert("⚠️ Enregistrement impossible : " + messageErreur(erreur));
         } finally {
@@ -133,10 +133,45 @@
     });
 
     // ---------- Liste des matchs de la compétition ----------
-    async function afficherMatchsAdmin() {
+    // ---------- Sélecteur de journée (comme sur la page de la compétition) ----------
+    var barreJournee = document.createElement("div");
+    barreJournee.style.cssText = "display: none; margin-bottom: 10px;";
+
+    var etiquetteJournee = document.createElement("strong");
+    etiquetteJournee.textContent = "Journée : ";
+
+    var selectJournee = document.createElement("select");
+
+    var infoJournee = document.createElement("span");
+    infoJournee.style.cssText = "color: #666; margin-left: 8px;";
+
+    barreJournee.appendChild(etiquetteJournee);
+    barreJournee.appendChild(selectJournee);
+    barreJournee.appendChild(infoJournee);
+
+    if (listeAdmin) listeAdmin.insertAdjacentElement("beforebegin", barreJournee);
+
+    selectJournee.addEventListener("change", afficherListeJournee);
+
+    function numeroJournee(m) {
+        return Number(m.journee) || 1;
+    }
+
+    // Par défaut : la 1re journée où il reste des scores à saisir, sinon la dernière
+    function journeeParDefaut(matchs, journees) {
+        for (var i = 0; i < journees.length; i++) {
+            var j = journees[i];
+            var resteAJouer = matchs.some(function (m) { return numeroJournee(m) === j && !m.joue; });
+            if (resteAJouer) return j;
+        }
+        return journees[journees.length - 1];
+    }
+
+    async function afficherMatchsAdmin(journeePreferee) {
         if (!listeAdmin) return;
 
         compCourante = null;
+        barreJournee.style.display = "none";
 
         if (!selectCompetition.value) {
             listeAdmin.innerHTML = '<p style="color: #666;">Sélectionnez une compétition pour voir et modifier ses matchs.</p>';
@@ -159,23 +194,62 @@
         }
 
         compCourante = comp;
-
-        var matchs = (comp.matchs || []).slice().sort(function (a, b) {
-            return (Number(a.journee) - Number(b.journee)) ||
-                String(a.date || "").localeCompare(String(b.date || ""));
-        });
+        var matchs = comp.matchs || [];
 
         if (matchs.length === 0) {
             listeAdmin.innerHTML = '<p style="color: #666;">Aucun match enregistré pour cette compétition.</p>';
             return;
         }
 
+        // Journées qui ont au moins un match enregistré
+        var journees = [];
+        matchs.forEach(function (m) {
+            var j = numeroJournee(m);
+            if (journees.indexOf(j) === -1) journees.push(j);
+        });
+        journees.sort(function (a, b) { return a - b; });
+
+        // Quelle journée afficher ? celle qu'on vient d'enregistrer, sinon celle déjà ouverte, sinon la plus utile
+        var dejaOuverte = Number(selectJournee.value);
+        var choix;
+        if (journeePreferee && journees.indexOf(Number(journeePreferee)) !== -1) {
+            choix = Number(journeePreferee);
+        } else if (journees.indexOf(dejaOuverte) !== -1) {
+            choix = dejaOuverte;
+        } else {
+            choix = journeeParDefaut(matchs, journees);
+        }
+
+        selectJournee.innerHTML = journees.map(function (j) {
+            var nombre = matchs.filter(function (m) { return numeroJournee(m) === j; }).length;
+            return '<option value="' + j + '">Journée ' + j + " (" + nombre + " match" + (nombre > 1 ? "s" : "") + ")</option>";
+        }).join("");
+        selectJournee.value = String(choix);
+
+        barreJournee.style.display = "block";
+        afficherListeJournee();
+    }
+
+    function afficherListeJournee() {
+        if (!compCourante) return;
+
+        var journee = Number(selectJournee.value);
+
+        var matchs = (compCourante.matchs || []).filter(function (m) {
+            return numeroJournee(m) === journee;
+        }).sort(function (a, b) {
+            return String(a.date || "").localeCompare(String(b.date || ""));
+        });
+
+        var joues = matchs.filter(function (m) { return m.joue; }).length;
+        infoJournee.textContent = joues + "/" + matchs.length + " joué" + (joues > 1 ? "s" : "");
+
         var html = "";
         matchs.forEach(function (m) {
             var resultat = m.joue ? m.scoreDomicile + " - " + m.scoreExterieur : "à venir";
             html +=
                 '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 0; border-bottom:1px solid #ddd;">' +
-                "<span><strong>J" + esc(m.journee) + "</strong> · " + formaterDate(m.date) + " — " +
+                "<span>" + formaterDate(m.date) + " — " +
                 esc(m.domicile) + " <strong>" + resultat + "</strong> " + esc(m.exterieur) + "</span>" +
                 "<span>" +
                 '<button type="button" class="modifier-match" data-id="' + m.id + '">✏️ Score / Modifier</button> ' +
@@ -232,6 +306,8 @@
     // ---------- Changement de compétition ----------
     selectCompetition.addEventListener("change", function () {
         reinitialiserFormulaire();
+        selectJournee.innerHTML = "";
+        selectJournee.value = "";
         afficherMatchsAdmin();
     });
 

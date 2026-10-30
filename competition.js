@@ -389,14 +389,14 @@ function afficherClassement() {
         tr.innerHTML =
             "<td>" + (index + 1) + "</td>" +
             "<td>" + logoHtml(e.data, "logo-tableau") + " <strong>" + esc(e.equipe) + "</strong></td>" +
+            "<td><strong>" + e.pts + "</strong></td>" +
             "<td>" + e.mj + "</td>" +
             "<td>" + e.v + "</td>" +
             "<td>" + e.n + "</td>" +
             "<td>" + e.d + "</td>" +
             "<td>" + e.bp + "</td>" +
             "<td>" + e.bc + "</td>" +
-            "<td>" + e.diff + "</td>" +
-            "<td><strong>" + e.pts + "</strong></td>";
+            "<td>" + e.diff + "</td>";
         classementBody.appendChild(tr);
     });
 }

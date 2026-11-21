@@ -191,6 +191,63 @@
     // Lancé après le chargement de la page pour ne pas la ralentir
     window.addEventListener("load", demarrerStatistiques);
 
+    // ---- Application installable (PWA) ----
+    var evenementInstallation = null;
+
+    function afficherBoutonInstallation() {
+        if (document.getElementById("boutonInstallerApp") || !evenementInstallation) return;
+
+        var barre = document.createElement("div");
+        barre.id = "boutonInstallerApp";
+        barre.style.cssText = "position:fixed; left:12px; right:12px; bottom:12px; z-index:9999; " +
+            "display:flex; gap:8px; align-items:center; justify-content:center;";
+
+        var installer = document.createElement("button");
+        installer.type = "button";
+        installer.textContent = "📲 Installer l'application";
+        installer.style.cssText = "flex:1; max-width:320px; padding:12px 16px; border:0; border-radius:24px; " +
+            "background:#008000; color:#fff; font-size:15px; font-weight:bold; box-shadow:0 2px 10px rgba(0,0,0,.3);";
+
+        var fermer = document.createElement("button");
+        fermer.type = "button";
+        fermer.textContent = "✕";
+        fermer.setAttribute("aria-label", "Fermer");
+        fermer.style.cssText = "padding:10px 14px; border:0; border-radius:50%; background:#fff; color:#333; " +
+            "box-shadow:0 2px 10px rgba(0,0,0,.3);";
+
+        installer.addEventListener("click", function () {
+            var evenement = evenementInstallation;
+            evenementInstallation = null;
+            barre.remove();
+            evenement.prompt();
+        });
+        fermer.addEventListener("click", function () { barre.remove(); });
+
+        barre.appendChild(installer);
+        barre.appendChild(fermer);
+        document.body.appendChild(barre);
+    }
+
+    if (!/admin/i.test(window.location.pathname)) {
+        window.addEventListener("beforeinstallprompt", function (e) {
+            e.preventDefault();
+            evenementInstallation = e;
+            if (document.body) afficherBoutonInstallation();
+            else document.addEventListener("DOMContentLoaded", afficherBoutonInstallation);
+        });
+
+        window.addEventListener("appinstalled", function () {
+            var barre = document.getElementById("boutonInstallerApp");
+            if (barre) barre.remove();
+        });
+
+        if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("sw.js").catch(function () { });
+            });
+        }
+    }
+
     window.Donnees = {
         liste: liste,
         lire: lire,

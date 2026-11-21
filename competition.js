@@ -234,6 +234,10 @@ function afficherEquipes() {
         var li = document.createElement("li");
         li.className = "carte-equipe";
         li.innerHTML = logoHtml(club, "logo-tableau") + " <strong>" + esc(nomEquipe(club)) + "</strong>";
+        li.style.cursor = "pointer";
+        li.addEventListener("click", function () {
+            ouvrirParcoursEquipe(nomEquipe(club));
+        });
         conteneur.appendChild(li);
     });
 }
@@ -326,6 +330,16 @@ function afficherClassement() {
 
     if (!competition.equipes) return;
 
+    // Phrase d'aide (une seule fois), au-dessus du tableau
+    var tableau = classementBody.parentElement;
+    if (tableau && tableau.parentNode && !document.getElementById("astuceClassement")) {
+        var astuce = document.createElement("p");
+        astuce.id = "astuceClassement";
+        astuce.style.cssText = "color: #666; font-size: 0.9em; margin: 0 0 8px;";
+        astuce.textContent = "👆 Appuyez sur un club pour voir ses résultats et ses prochains matchs.";
+        tableau.parentNode.insertBefore(astuce, tableau);
+    }
+
     // Système de points choisi dans l'administration (3 / 1 / 0 par défaut)
     var pts = competition.points || {};
     var ptsVictoire = pts.victoire !== undefined ? Number(pts.victoire) : 3;
@@ -397,9 +411,148 @@ function afficherClassement() {
             "<td>" + e.bp + "</td>" +
             "<td>" + e.bc + "</td>" +
             "<td>" + e.diff + "</td>";
+
+        // Appuyer sur une ligne : résultats et prochains matchs de ce club
+        tr.style.cursor = "pointer";
+        tr.title = "Voir les matchs de " + e.equipe;
+        tr.addEventListener("click", function () {
+            ouvrirParcoursEquipe(e.equipe);
+        });
+
         classementBody.appendChild(tr);
     });
 }
+
+// ===============================
+// PARCOURS D'UNE ÉQUIPE : résultats + prochains matchs
+// ===============================
+function numeroDeJournee(match) {
+    return Number(match.journee) || 1;
+}
+
+// Tous les matchs d'un club dans la compétition, classés par journée
+function matchsDeEquipe(nom) {
+    return (competition.matchs || []).filter(function (m) {
+        return m.domicile === nom || m.exterieur === nom;
+    }).sort(function (a, b) {
+        return (numeroDeJournee(a) - numeroDeJournee(b)) ||
+            String(a.date || "").localeCompare(String(b.date || ""));
+    });
+}
+
+// "V", "N" ou "D" du point de vue du club
+function resultatPour(nom, match) {
+    var buts = match.domicile === nom
+        ? [Number(match.scoreDomicile) || 0, Number(match.scoreExterieur) || 0]
+        : [Number(match.scoreExterieur) || 0, Number(match.scoreDomicile) || 0];
+
+    if (buts[0] > buts[1]) return "V";
+    if (buts[0] < buts[1]) return "D";
+    return "N";
+}
+
+var COULEURS_RESULTAT = {
+    V: { fond: "#2e7d32", texte: "#fff" },
+    N: { fond: "#f9a825", texte: "#333" },
+    D: { fond: "#c62828", texte: "#fff" }
+};
+
+function pastille(lettre) {
+    var c = COULEURS_RESULTAT[lettre];
+    return '<span style="display:inline-block; min-width:26px; text-align:center; padding:3px 0; ' +
+        "border-radius:50%; font-size:0.8em; font-weight:bold; background:" + c.fond + "; color:" + c.texte + ';">' +
+        lettre + "</span>";
+}
+
+function ligneDeMatch(nom, match) {
+    var domicile = match.domicile === nom ? "<strong>" + esc(match.domicile) + "</strong>" : esc(match.domicile);
+    var exterieur = match.exterieur === nom ? "<strong>" + esc(match.exterieur) + "</strong>" : esc(match.exterieur);
+
+    var gauche = match.joue
+        ? pastille(resultatPour(nom, match))
+        : '<span style="display:inline-block; min-width:26px; text-align:center;">🗓</span>';
+
+    var milieu = match.joue
+        ? domicile + " <strong>" + (Number(match.scoreDomicile) || 0) + " - " + (Number(match.scoreExterieur) || 0) + "</strong> " + exterieur
+        : domicile + " 🆚 " + exterieur;
+
+    return '<div style="display:flex; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">' +
+        gauche +
+        "<div>" +
+        '<div style="color:#666; font-size:0.85em;">Journée ' + numeroDeJournee(match) +
+        (match.date ? " · " + formaterDate(match.date) : "") + "</div>" +
+        "<div>" + milieu + "</div>" +
+        "</div></div>";
+}
+
+function fermerParcoursEquipe() {
+    var fenetre = document.getElementById("parcoursEquipe");
+    if (fenetre) fenetre.remove();
+    document.body.style.overflow = "";
+}
+
+function ouvrirParcoursEquipe(nom) {
+    fermerParcoursEquipe();
+
+    var club = (competition.equipes || []).find(function (e) { return nomEquipe(e) === nom; });
+    var matchs = matchsDeEquipe(nom);
+    var joues = matchs.filter(function (m) { return m.joue; });
+    var avenir = matchs.filter(function (m) { return !m.joue; });
+
+    var victoires = joues.filter(function (m) { return resultatPour(nom, m) === "V"; }).length;
+    var nuls = joues.filter(function (m) { return resultatPour(nom, m) === "N"; }).length;
+    var defaites = joues.length - victoires - nuls;
+
+    // Forme : les 5 derniers matchs joués
+    var forme = joues.slice(-5).map(function (m) { return pastille(resultatPour(nom, m)); }).join(" ");
+
+    var html =
+        '<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">' +
+        '<div style="flex:1; font-size:1.2em;">' + (club ? logoHtml(club, "logo-tableau") : "") +
+        " <strong>" + esc(nom) + "</strong></div>" +
+        '<button type="button" id="fermerParcours" aria-label="Fermer" ' +
+        'style="border:0; background:#eee; color:#333; border-radius:50%; width:36px; height:36px; font-size:1em;">✕</button>' +
+        "</div>" +
+        '<div style="color:#555; margin-bottom:6px;">' + joues.length + " match" + (joues.length > 1 ? "s" : "") +
+        " joué" + (joues.length > 1 ? "s" : "") + " · " + victoires + " V · " + nuls + " N · " + defaites + " D</div>" +
+        (forme ? '<div style="margin-bottom:10px;">Forme : ' + forme + "</div>" : "");
+
+    html += '<h4 style="margin:14px 0 4px;">Résultats</h4>';
+    html += joues.length
+        ? joues.map(function (m) { return ligneDeMatch(nom, m); }).join("")
+        : '<p style="color:#666;">Aucun match joué pour le moment.</p>';
+
+    html += '<h4 style="margin:18px 0 4px;">Prochains matchs</h4>';
+    html += avenir.length
+        ? avenir.map(function (m) { return ligneDeMatch(nom, m); }).join("")
+        : '<p style="color:#666;">Aucun match à venir enregistré.</p>';
+
+    var fond = document.createElement("div");
+    fond.id = "parcoursEquipe";
+    fond.setAttribute("role", "dialog");
+    fond.setAttribute("aria-modal", "true");
+    fond.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:300; " +
+        "background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; padding:12px;";
+
+    var fiche = document.createElement("div");
+    fiche.style.cssText = "background:#fff; width:100%; max-width:520px; max-height:88vh; overflow-y:auto; " +
+        "border-radius:14px; padding:16px; box-sizing:border-box;";
+    fiche.innerHTML = html;
+
+    fond.appendChild(fiche);
+    fond.addEventListener("click", function (evenement) {
+        if (evenement.target === fond) fermerParcoursEquipe();
+    });
+
+    document.body.appendChild(fond);
+    document.body.style.overflow = "hidden";
+
+    document.getElementById("fermerParcours").addEventListener("click", fermerParcoursEquipe);
+}
+
+document.addEventListener("keydown", function (evenement) {
+    if (evenement.key === "Escape") fermerParcoursEquipe();
+});
 
 // ===============================
 // FORMATER LA DATE

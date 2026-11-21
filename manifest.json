@@ -1,7 +1,7 @@
 {
   "id": "./",
   "name": "Boma Football News",
-  "short_name": "Boma Foot",
+  "short_name": "Boma Football",
   "description": "Classements, calendriers et résultats du football à Boma et en RDC",
   "lang": "fr",
   "start_url": "./index.html",
